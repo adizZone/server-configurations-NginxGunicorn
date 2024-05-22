@@ -1,0 +1,63 @@
+server {
+    include /etc/nginx/mime.types;
+    listen 80;
+    server_name aditya-workspace.com;
+
+    return 301 https://$host$request_uri;
+
+#    location = /favicon.png { access_log off; log_not_found off; expires 30d; add_header Cache-Contr>
+
+    location /media/ {
+        root /home/ubuntu/portfolio/myPortfolio;
+        include /etc/nginx/mime.types;
+        try_files $uri $uri/ /mediafiles$uri =404;
+    }
+
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+
+}
+
+server {
+    include /etc/nginx/mime.types;
+    listen 443 ssl;
+    server_name aditya-workspace.com;
+    ssl_certificate /etc/letsencrypt/live/aditya-workspace.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/aditya-workspace.com/privkey.pem;
+
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+
+    location /media/ {
+        root /home/ubuntu/portfolio/myPortfolio;
+        include /etc/nginx/mime.types;
+        try_files $uri $uri/ /mediafiles$uri =404;
+    }
+
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+
+}
+
+
+server {
+    listen 80;
+    server_name www.aditya-workspace.com;
+
+    return 301 http://aditya-workspace.com$request_uri;
+}
+
+
+server {
+    listen 443 ssl;
+    server_name www.aditya-workspace.com;
+
+    return 301 https://aditya-workspace.com$request_uri;
+}
